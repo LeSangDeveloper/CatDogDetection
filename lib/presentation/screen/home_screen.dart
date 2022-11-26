@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -11,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _counter = 0;
+  File? _imageFile;
 
   void _incrementCounter() {
     setState(() {
@@ -28,20 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Container(
+              margin: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                boxShadow: [
+                  BoxShadow(color: Colors.black38, offset: Offset(1, 1))
+                ]
+              ),
+              child: (_imageFile != null) ? Image.file(_imageFile!) : Image.network("https://i.imgur.com/sUFH1Aq.png"),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            ElevatedButton(onPressed: () => {}, child: const Icon(Icons.image))
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

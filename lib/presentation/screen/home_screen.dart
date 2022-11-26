@@ -43,11 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: BlocBuilder<ImageLoaderCubit, ImageLoaderState>(
                 builder: (context, state) {
-                  return Image.file(_imageFile!);
+                  return state.imagePath == '' ? Image.network("https://i.imgur.com/sUFH1Aq.png") : Image.file(File(state.imagePath));
                 },
               ),
             ),
-            ElevatedButton(onPressed: () => {}, child: const Icon(Icons.image))
+            ElevatedButton(
+                onPressed: () {
+                  BlocProvider.of<ImageLoaderCubit>(context).loadImage();
+                  },
+                child: const Icon(Icons.image))
           ],
         ),
       ), // This trailing comma makes auto-formatting nicer for build methods.

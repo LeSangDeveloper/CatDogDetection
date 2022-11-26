@@ -1,4 +1,4 @@
-import 'package:catdogdetection/presentation/screen/home_screen.dart';
+import 'package:object_detection_app/presentation/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoute {

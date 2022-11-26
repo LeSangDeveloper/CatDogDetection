@@ -1,4 +1,4 @@
-import 'package:catdogdetection/presentation/router/app_route.dart';
+import 'package:object_detection_app/presentation/router/app_route.dart';
 import 'package:flutter/material.dart';
 
 void main() {

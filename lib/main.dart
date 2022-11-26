@@ -1,3 +1,5 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:object_detection_app/logic/cubit/image_loader_cubit.dart';
 import 'package:object_detection_app/presentation/router/app_route.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +14,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      onGenerateRoute: _router.onGeneratorRoute,
+    return BlocProvider<ImageLoaderCubit>(
+        create: (context) => ImageLoaderCubit(),
+        child: MaterialApp(
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          onGenerateRoute: _router.onGeneratorRoute,
+        )
     );
   }
 }

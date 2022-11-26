@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:object_detection_app/logic/cubit/image_loader_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.title});
@@ -39,7 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   BoxShadow(color: Colors.black38, offset: Offset(1, 1))
                 ]
               ),
-              child: (_imageFile != null) ? Image.file(_imageFile!) : Image.network("https://i.imgur.com/sUFH1Aq.png"),
+              child: BlocBuilder<ImageLoaderCubit, ImageLoaderState>(
+                builder: (context, state) {
+                  return Image.file(_imageFile!);
+                },
+              ),
             ),
             ElevatedButton(onPressed: () => {}, child: const Icon(Icons.image))
           ],

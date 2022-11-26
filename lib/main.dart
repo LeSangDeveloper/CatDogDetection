@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return BlocProvider<ImageLoaderCubit>(
         create: (context) => ImageLoaderCubit(),
         child: MaterialApp(
-          title: 'Flutter Demo',
+          title: 'Object detection',
           theme: ThemeData(
             primarySwatch: Colors.blue,
           ),

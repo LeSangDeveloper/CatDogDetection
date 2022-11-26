@@ -39,6 +39,11 @@ dependencies:
   bloc: ^8.1.0
   image_picker: ^0.8.5+3
   flutter_bloc: ^8.1.1
+  tflite_flutter: ^0.9.0
+  tflite_flutter_helper:
+    git:
+      url: https://github.com/elephantum/tflite_flutter_helper.git
+      ref: a7d7a59a33f7cffa0a2a12ab05625807622cc97a
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +71,10 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+
+  assets:
+    - detect.tflite
+    - labelmap.txt
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

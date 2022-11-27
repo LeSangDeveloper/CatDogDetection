@@ -7,7 +7,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'package:image/image.dart' as ImageLib;
 
-class ObjectDetector {
+class Classifier {
   Interpreter? _interpreter;
   List<String>? _labels;
 
@@ -24,7 +24,7 @@ class ObjectDetector {
 
   ImageProcessor? _imageProcessor;
 
-  ObjectDetector({Interpreter? interpreter, List<String>? labels}){
+  Classifier({Interpreter? interpreter, List<String>? labels}){
     loadModel(interpreter);
     loadLabels(labels);
   }
@@ -38,10 +38,10 @@ class ObjectDetector {
       _outputTypes = [];
       _inputShapes = [];
       _inputTypes = [];
-      for (var tensor in outputTensors) {
+      outputTensors.forEach((tensor) {
         _outputShapes!.add(tensor.shape);
         _outputTypes!.add(tensor.type);
-      }
+      });
       for (var tensor in inputTensors) {
         _inputShapes!.add(tensor.shape);
         _inputTypes!.add(tensor.type);
@@ -60,63 +60,105 @@ class ObjectDetector {
   }
 
   TensorImage getProcessedImage(TensorImage image) {
-    int padSize = max(image.height, image.width);
+    var padSize = max(image.height, image.width);
     _imageProcessor = ImageProcessorBuilder()
-        .add(ResizeWithCropOrPadOp(padSize, padSize))
-        .add(ResizeOp(_inputShapes![0][1], _inputShapes![0][2], ResizeMethod.BILINEAR))
-        .build();
-    return _imageProcessor!.process(image);
+          .add(ResizeWithCropOrPadOp(padSize, padSize))
+          .add(ResizeOp(INPUT_SIZE, INPUT_SIZE, ResizeMethod.BILINEAR))
+          .build();
+    image = _imageProcessor!.process(image);
+    return image;
   }
 
-  Map<String, dynamic> predict(ImageLib.Image image) {
-      TensorImage tensorImage = TensorImage(_inputTypes![0]);
-      tensorImage.loadImage(image);
-      TensorImage inputImage = getProcessedImage(tensorImage);
+  Map<String, dynamic>? predict(ImageLib.Image image) {
+    var predictStartTime = DateTime.now().millisecondsSinceEpoch;
 
-      TensorBuffer outputLocations = TensorBufferFloat(_outputShapes![0]);
-      TensorBuffer outputClasses = TensorBufferFloat(_outputShapes![1]);
-      TensorBuffer outputScores = TensorBufferFloat(_outputShapes![2]);
-      TensorBuffer numLocations = TensorBufferFloat(_outputShapes![3]);
+    if (_interpreter == null) {
+      print("Interpreter not initialized");
+      return null;
+    }
 
-      List<Object> inputs = [inputImage.buffer];
-      Map<int, Object> outputs = {
-        0: outputLocations.buffer,
-        1: outputClasses.buffer,
-        2: outputScores.buffer,
-        3: numLocations.buffer
-      };
+    var preProcessStart = DateTime.now().millisecondsSinceEpoch;
 
-      _interpreter!.runForMultipleInputs(inputs, outputs);
+    // Create TensorImage from image
+    TensorImage inputImage = TensorImage.fromImage(image);
 
-      List<Rect> locations = BoundingBoxUtils.convert(
-          tensor: outputLocations,
-          boundingBoxAxis: 2,
-          boundingBoxType: BoundingBoxType.BOUNDARIES,
-          coordinateType: CoordinateType.PIXEL,
-          height: INPUT_SIZE,
-          width: INPUT_SIZE
-      );
+    // Pre-process TensorImage
+    inputImage = getProcessedImage(inputImage);
 
-      int numResults = min(NUM_RESULTS, numLocations.getIntValue(0));
+    var preProcessElapsedTime =
+        DateTime.now().millisecondsSinceEpoch - preProcessStart;
 
-      List<Recognition> recognitions = [];
+    // TensorBuffers for output tensors
+    TensorBuffer outputLocations = TensorBufferFloat(_outputShapes![0]);
+    TensorBuffer outputClasses = TensorBufferFloat(_outputShapes![1]);
+    TensorBuffer outputScores = TensorBufferFloat(_outputShapes![2]);
+    TensorBuffer numLocations = TensorBufferFloat(_outputShapes![3]);
 
-      for (int i = 0; i < numResults; ++i) {
-        var score = outputScores.getDoubleValue(i);
-        var labelIndex = outputClasses.getIntValue(i) + 1;
-        var label = _labels!.elementAt(labelIndex);
+    // Inputs object for runForMultipleInputs
+    // Use [TensorImage.buffer] or [TensorBuffer.buffer] to pass by reference
+    List<Object> inputs = [inputImage.buffer];
 
-        if (score > THRESHOLD) {
-          Rect transformedRect = _imageProcessor!.inverseTransformRect(
-              locations[i], INPUT_SIZE, INPUT_SIZE
-          );
-          recognitions.add(Recognition(i, label, score, transformedRect));
-        }
+    // Outputs map
+    Map<int, Object> outputs = {
+      0: outputLocations.buffer,
+      1: outputClasses.buffer,
+      2: outputScores.buffer,
+      3: numLocations.buffer,
+    };
 
+    var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
+
+    // run inference
+    _interpreter!.runForMultipleInputs(inputs, outputs);
+
+    var inferenceTimeElapsed =
+        DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
+
+    // Maximum number of results to show
+    int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
+
+    // Using labelOffset = 1 as ??? at index 0
+    int labelOffset = 1;
+
+    // Using bounding box utils for easy conversion of tensorbuffer to List<Rect>
+    List<Rect> locations = BoundingBoxUtils.convert(
+      tensor: outputLocations,
+      valueIndex: [1, 0, 3, 2],
+      boundingBoxAxis: 2,
+      boundingBoxType: BoundingBoxType.BOUNDARIES,
+      coordinateType: CoordinateType.RATIO,
+      height: INPUT_SIZE,
+      width: INPUT_SIZE,
+    );
+
+    List<Recognition> recognitions = [];
+
+    for (int i = 0; i < resultsCount; i++) {
+      // Prediction score
+      var score = outputScores.getDoubleValue(i);
+
+      // Label string
+      var labelIndex = outputClasses.getIntValue(i) + labelOffset;
+      var label = _labels!.elementAt(labelIndex);
+
+      if (score > THRESHOLD) {
+        // inverse of rect
+        // [locations] corresponds to the image size 300 X 300
+        // inverseTransformRect transforms it our [inputImage]
+        Rect transformedRect = _imageProcessor!.inverseTransformRect(
+            locations[i], image.height, image.width);
+
+        recognitions.add(
+          Recognition(i, label, score, transformedRect),
+        );
       }
+    }
 
-      return {
-        "recognitions": recognitions
+    var predictElapsedTime =
+        DateTime.now().millisecondsSinceEpoch - predictStartTime;
+
+    return {
+      "recognitions": recognitions
     };
   }
 

@@ -14,14 +14,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _counter = 0;
-  File? _imageFile;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +35,23 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: BlocBuilder<ImageLoaderCubit, ImageLoaderState>(
                 builder: (context, state) {
-                  return state.imagePath == '' ? Image.network("https://i.imgur.com/sUFH1Aq.png") : Image.file(File(state.imagePath));
+                  return Stack(
+                    children: [
+                      state.imagePath == '' ? Image.network("https://i.imgur.com/sUFH1Aq.png") : Image.file(File(state.imagePath)),
+                      state.recognitions != null ? Positioned(
+                          left: state.recognitions![0].getRenderLocation(480, 480, 450).left,
+                          top: state.recognitions![0].getRenderLocation(480, 480, 450).top,
+                          child: Container(
+                            width: state.recognitions![0].getRenderLocation(480, 480, 450).width,
+                            height: state.recognitions![0].getRenderLocation(480, 480, 450).height,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 5.0,
+                                  color: Colors.red,
+                                )),
+                          )) : Container()
+                    ],
+                  );
                 },
               ),
             ),

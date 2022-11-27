@@ -15,7 +15,7 @@ class ImageLoaderCubit extends Cubit<ImageLoaderState> {
 
   void loadImage() async {
     var imagePicker = ImagePicker();
-    var objectDetector = ObjectDetector();
+    var objectDetector = Classifier();
 
     dynamic image;
     try {
@@ -28,8 +28,8 @@ class ImageLoaderCubit extends Cubit<ImageLoaderState> {
     }
     else {
       var imgFile = File(image!.path);
-      Map<String, dynamic> recognitions = objectDetector.predict(img.decodeImage(imgFile!.readAsBytesSync())!);
-      emit(ImageLoaderState(imagePath: image!.path, recognitions: recognitions['recognitions']));
+      Map<String, dynamic>? recognitions = objectDetector.predict(img.decodeImage(imgFile!.readAsBytesSync())!);
+      emit(ImageLoaderState(imagePath: image!.path, recognitions: recognitions!['recognitions']));
     }
   }
 

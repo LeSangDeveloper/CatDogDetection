@@ -2,7 +2,11 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:object_detection_app/logic/detector/object_detector.dart';
+
+import '../detector/recognition.dart';
 
 part 'image_loader_state.dart';
 
@@ -11,6 +15,8 @@ class ImageLoaderCubit extends Cubit<ImageLoaderState> {
 
   void loadImage() async {
     var imagePicker = ImagePicker();
+    var objectDetector = ObjectDetector();
+
     dynamic image;
     try {
       image = await imagePicker.pickImage(source: ImageSource.gallery, maxHeight: 300, preferredCameraDevice: CameraDevice.front, requestFullMetadata: false);
@@ -21,7 +27,9 @@ class ImageLoaderCubit extends Cubit<ImageLoaderState> {
       emit(ImageLoaderState(imagePath: ''));
     }
     else {
-      emit(ImageLoaderState(imagePath: image!.path));
+      var imgFile = File(image!.path);
+      Map<String, dynamic> recognitions = objectDetector.predict(img.decodeImage(imgFile!.readAsBytesSync())!);
+      emit(ImageLoaderState(imagePath: image!.path, recognitions: recognitions['recognitions']));
     }
   }
 

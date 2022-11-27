@@ -19,6 +19,8 @@ class ObjectDetector {
 
   List<List<int>>? _outputShapes;
   List<TfLiteType>? _outputTypes;
+  List<List<int>>? _inputShapes;
+  List<TfLiteType>? _inputTypes;
 
   ImageProcessor? _imageProcessor;
 
@@ -31,11 +33,18 @@ class ObjectDetector {
     try {
       _interpreter = interpreter ?? await Interpreter.fromAsset(MODEL_FILE_NAME);
       var outputTensors = _interpreter!.getOutputTensors();
+      var inputTensors = _interpreter!.getInputTensors();
       _outputShapes = [];
       _outputTypes = [];
+      _inputShapes = [];
+      _inputTypes = [];
       for (var tensor in outputTensors) {
         _outputShapes!.add(tensor.shape);
         _outputTypes!.add(tensor.type);
+      }
+      for (var tensor in inputTensors) {
+        _inputShapes!.add(tensor.shape);
+        _inputTypes!.add(tensor.type);
       }
     } catch (e) {
       debugPrint("Cannot load the model $e");
@@ -54,20 +63,22 @@ class ObjectDetector {
     int padSize = max(image.height, image.width);
     _imageProcessor = ImageProcessorBuilder()
         .add(ResizeWithCropOrPadOp(padSize, padSize))
-        .add(ResizeOp(INPUT_SIZE, INPUT_SIZE, ResizeMethod.BILINEAR))
+        .add(ResizeOp(_inputShapes![0][1], _inputShapes![0][2], ResizeMethod.BILINEAR))
         .build();
     return _imageProcessor!.process(image);
   }
 
   Map<String, dynamic> predict(ImageLib.Image image) {
-      TensorImage inputImage = getProcessedImage(TensorImage.fromImage(image));
+      TensorImage tensorImage = TensorImage(_inputTypes![0]);
+      tensorImage.loadImage(image);
+      TensorImage inputImage = getProcessedImage(tensorImage);
 
       TensorBuffer outputLocations = TensorBufferFloat(_outputShapes![0]);
       TensorBuffer outputClasses = TensorBufferFloat(_outputShapes![1]);
       TensorBuffer outputScores = TensorBufferFloat(_outputShapes![2]);
       TensorBuffer numLocations = TensorBufferFloat(_outputShapes![3]);
 
-      List<Object> inputs = [inputImage];
+      List<Object> inputs = [inputImage.buffer];
       Map<int, Object> outputs = {
         0: outputLocations.buffer,
         1: outputClasses.buffer,

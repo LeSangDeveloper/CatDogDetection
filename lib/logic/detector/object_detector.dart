@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:object_detection_app/logic/detector/recognition.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 import 'package:image/image.dart' as ImageLib;
@@ -87,7 +88,7 @@ class ObjectDetector {
 
       int numResults = min(NUM_RESULTS, numLocations.getIntValue(0));
 
-      List<Rect> recognitions = [];
+      List<Recognition> recognitions = [];
 
       for (int i = 0; i < numResults; ++i) {
         var score = outputScores.getDoubleValue(i);
@@ -98,15 +99,13 @@ class ObjectDetector {
           Rect transformedRect = _imageProcessor!.inverseTransformRect(
               locations[i], INPUT_SIZE, INPUT_SIZE
           );
-          // TODO improve later
-          recognitions.add(transformedRect);
+          recognitions.add(Recognition(i, label, score, transformedRect));
         }
 
       }
 
       return {
-        "abc": 1,
-        "cdf": 2
+        "recognitions": recognitions
     };
   }
 

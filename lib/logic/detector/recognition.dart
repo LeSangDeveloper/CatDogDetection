@@ -13,17 +13,4 @@ class Recognition {
   String get label => _label;
   double get confidence => _confidence;
   Rect get location => _location;
-
-  Rect getRenderLocation(double screenWidth, double screenHeight, double imageInputWidth) {
-    double ratioX = 1;
-    double ratioY = ratioX;
-    
-    double transLeft = max(0.1, location.left * ratioX);
-    double transTop = max(0.1, location.top * ratioY);
-    double transWidth = min(location.width * ratioX, screenWidth);
-    double transHeight = min(location.height * ratioY, screenHeight);
-
-    Rect transformedRect = Rect.fromLTWH(transLeft, transTop, transWidth, transHeight);
-    return transformedRect;
-  }
 }

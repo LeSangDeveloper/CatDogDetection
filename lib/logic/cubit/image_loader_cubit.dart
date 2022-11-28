@@ -19,7 +19,7 @@ class ImageLoaderCubit extends Cubit<ImageLoaderState> {
 
     dynamic image;
     try {
-      image = await imagePicker.pickImage(source: ImageSource.gallery, maxHeight: 300, preferredCameraDevice: CameraDevice.front, requestFullMetadata: false);
+      image = await imagePicker.pickImage(source: ImageSource.gallery, maxWidth: 300, maxHeight: 300, preferredCameraDevice: CameraDevice.front, requestFullMetadata: false);
     } catch (e) {
       image = null;
     }

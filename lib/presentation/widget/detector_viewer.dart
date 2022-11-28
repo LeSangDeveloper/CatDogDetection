@@ -26,11 +26,11 @@ class _DetectorViewerState extends State<DetectorViewer> {
     if (widget.recognitions != null) {
       for (int i = 0; i < widget.recognitions!.length; ++i) {
         results.add(Positioned(
-            left: widget.recognitions![i].getRenderLocation(480, 480, 450).left,
-            top: widget.recognitions![i].getRenderLocation(480, 480, 450).top,
+            left: widget.recognitions![i].location.left,
+            top: widget.recognitions![i].location.top,
             child: Container(
-              width: widget.recognitions![i].getRenderLocation(480, 480, 450).width,
-              height: widget.recognitions![i].getRenderLocation(480, 480, 450).height,
+              width: widget.recognitions![i].location.width,
+              height: widget.recognitions![i].location.height,
               decoration: BoxDecoration(
                   border: Border.all(
                     width: 5.0,

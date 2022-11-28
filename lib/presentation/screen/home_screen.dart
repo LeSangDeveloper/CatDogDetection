@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:object_detection_app/logic/cubit/image_loader_cubit.dart';
+import 'package:object_detection_app/presentation/widget/detector_viewer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.title});
@@ -35,23 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: BlocBuilder<ImageLoaderCubit, ImageLoaderState>(
                 builder: (context, state) {
-                  return Stack(
-                    children: [
-                      state.imagePath == '' ? Image.network("https://i.imgur.com/sUFH1Aq.png") : Image.file(File(state.imagePath)),
-                      state.recognitions != null ? Positioned(
-                          left: state.recognitions![0].getRenderLocation(480, 480, 450).left,
-                          top: state.recognitions![0].getRenderLocation(480, 480, 450).top,
-                          child: Container(
-                            width: state.recognitions![0].getRenderLocation(480, 480, 450).width,
-                            height: state.recognitions![0].getRenderLocation(480, 480, 450).height,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 5.0,
-                                  color: Colors.red,
-                                )),
-                          )) : Container()
-                    ],
-                  );
+                  return DetectorViewer(imagePath: state.imagePath, recognitions: state.recognitions);
                 },
               ),
             ),

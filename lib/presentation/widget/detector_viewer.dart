@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,8 +24,20 @@ class _DetectorViewerState extends State<DetectorViewer> {
     List<Widget> results = [];
     results.add(widget.imagePath == '' ? Image.network("https://i.imgur.com/sUFH1Aq.png") : Image.file(File(widget.imagePath)));
 
+    // Define all colors you want here
+    const predefinedColors = [
+      Colors.red,
+      Colors.green,
+      Colors.blue,
+      Colors.purple,
+      Colors.deepOrangeAccent
+    ];
+
+    Random random = Random();
+
     if (widget.recognitions != null) {
       for (int i = 0; i < widget.recognitions!.length; ++i) {
+        Color color = predefinedColors[random.nextInt(predefinedColors.length)];
         results.add(Positioned(
             left: widget.recognitions![i].location.left,
             top: widget.recognitions![i].location.top,
@@ -34,8 +47,23 @@ class _DetectorViewerState extends State<DetectorViewer> {
               decoration: BoxDecoration(
                   border: Border.all(
                     width: 5.0,
-                    color: Colors.red,
+                    color: color,
                   )),
+              child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: FittedBox(
+                    child: Container(
+                      color: color,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(widget.recognitions![i].label),
+                          Text(" ${widget.recognitions![i].confidence.toStringAsFixed(2)}"),
+                        ],
+                      ),
+                    ),
+                  )
+              ),
             )));
       }
     }
